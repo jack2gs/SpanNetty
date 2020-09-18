@@ -22,13 +22,8 @@
 
 using System;
 using System.Net;
-using System.Net.Sockets;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using DotNetty.Common.Concurrency;
-using DotNetty.Common.Utilities;
-using DotNetty.Transport.Channels;
+using DotNetty.Transport.Libuv.Handles;
 using DotNetty.Transport.Libuv.Native;
 
 namespace DotNetty.Transport.Libuv
@@ -48,6 +43,8 @@ namespace DotNetty.Transport.Libuv
         key,
         obj,
         str,
+        tcp,
+        udp,
 
         list,
         pool,
@@ -56,6 +53,10 @@ namespace DotNetty.Transport.Libuv
         item,
         type,
         func,
+        loop,
+        pipe,
+        size,
+        node,
         task,
 
         match,
@@ -67,7 +68,10 @@ namespace DotNetty.Transport.Libuv
         index,
         count,
 
+        action,
         policy,
+        handle,
+        repeat,
         offset,
         method,
         buffer,
@@ -75,22 +79,37 @@ namespace DotNetty.Transport.Libuv
         values,
         parent,
         length,
+        onRead,
+        socket,
         target,
         member,
 
+        buffers,
+        backlog,
         feature,
         manager,
         newSize,
         invoker,
         options,
+        minimum,
+        initial,
+        maximum,
+        onError,
+        service,
+        timeout,
 
         assembly,
         capacity,
+        endPoint,
         fullName,
         typeInfo,
         typeName,
         nThreads,
+        onAccept,
+        callback,
+        interval,
 
+        allocator,
         defaultFn,
         fieldInfo,
         predicate,
@@ -100,6 +119,10 @@ namespace DotNetty.Transport.Libuv
         collection,
         expression,
         startIndex,
+        remoteName,
+        readAction,
+        completion,
+        sendHandle,
 
         directories,
         dirEnumArgs,
@@ -108,12 +131,23 @@ namespace DotNetty.Transport.Libuv
         valueFactory,
         propertyInfo,
         instanceType,
+        workCallback,
+        streamHandle,
+        onConnection,
 
         attributeType,
+        localEndPoint,
+        receiveAction,
 
         chooserFactory,
         eventLoopGroup,
         parameterTypes,
+        remoteEndPoint,
+
+        connectedAction,
+
+        multicastAddress,
+        interfaceAddress,
 
         assemblyPredicate,
         qualifiedTypeName,
@@ -132,7 +166,7 @@ namespace DotNetty.Transport.Libuv
 
     #endregion
 
-    partial class ThrowHelper
+    internal partial class ThrowHelper
     {
         #region -- ArgumentException --
 
@@ -177,24 +211,32 @@ namespace DotNetty.Transport.Libuv
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowArgumentException_RegChannel()
+        internal static int ThrowArgumentException_PositiveOrOne(int value, ExceptionArgument argument)
         {
-            throw GetArgumentException();
-
-            static ArgumentException GetArgumentException()
+            throw GetException();
+            ArgumentException GetException()
             {
-                return new ArgumentException($"channel must be of {typeof(INativeChannel)}");
+                return new ArgumentException($"{GetArgumentName(argument)}: {value} (expected: >= 1)");
             }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowArgumentException_PipeName()
+        internal static void ThrowArgumentException_InvalidOffLen()
         {
-            throw GetArgumentException();
-
-            static ArgumentException GetArgumentException()
+            throw GetException();
+            static ArgumentException GetException()
             {
-                return new ArgumentException("Pipe name is required for worker event loop", "parent");
+                return new ArgumentException("Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void ThrowArgumentException_TtyMode_is_Unix_only(TtyMode mode)
+        {
+            throw GetException();
+            ArgumentException GetException()
+            {
+                return new ArgumentException($"{mode} is Unix only.", nameof(mode));
             }
         }
 
@@ -203,178 +245,36 @@ namespace DotNetty.Transport.Libuv
         #region -- InvalidOperationException --
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static Task ThrowInvalidOperationException(IntPtr loopHandle)
+        internal static InvalidOperationException GetInvalidOperationException_uv_handle_type_not_supported_or_IPC_over_Pipe_is_disabled(uv_handle_type handleType)
         {
-            throw GetInvalidOperationException();
-            InvalidOperationException GetInvalidOperationException()
-            {
-                return new InvalidOperationException($"Loop {loopHandle} does not exist");
-            }
+            return new InvalidOperationException($"{handleType} not supported or IPC over Pipe is disabled.");
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowInvalidOperationException_ExecutionState(int executionState)
+        internal static InvalidOperationException GetInvalidOperationException_Pipe_IPC_handle_not_supported(uv_handle_type type)
         {
-            throw GetInvalidOperationException();
-            InvalidOperationException GetInvalidOperationException()
-            {
-                return new InvalidOperationException($"Invalid state {executionState}");
-            }
+            return new InvalidOperationException($"Pipe IPC handle {type} not supported");
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowInvalidOperationException_ExecutionState0(int executionState)
-        {
-            throw GetInvalidOperationException();
-            InvalidOperationException GetInvalidOperationException()
-            {
-                return new InvalidOperationException($"Invalid {nameof(LoopExecutor)} state {executionState}");
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowInvalidOperationException_ExpectingTcpHandle(uv_handle_type type)
-        {
-            throw GetInvalidOperationException();
-            InvalidOperationException GetInvalidOperationException()
-            {
-                return new InvalidOperationException($"Expecting tcp handle, {type} not supported");
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowInvalidOperationException_Dispatch()
-        {
-            throw GetInvalidOperationException();
-
-            static InvalidOperationException GetInvalidOperationException()
-            {
-                return new InvalidOperationException("No pipe connections to dispatch handles.");
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowInvalidOperationException_ConnAttempt()
-        {
-            throw GetInvalidOperationException();
-
-            static InvalidOperationException GetInvalidOperationException()
-            {
-                return new InvalidOperationException("connection attempt already made");
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowInvalidOperationException_TcpHandle()
-        {
-            throw GetInvalidOperationException();
-
-            static InvalidOperationException GetInvalidOperationException()
-            {
-                return new InvalidOperationException("Tcp handle not intialized");
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static uint ThrowInvalidOperationException_Dispatch(AddressFamily addressFamily)
-        {
-            throw GetInvalidOperationException();
-            InvalidOperationException GetInvalidOperationException()
-            {
-                return new InvalidOperationException($"Address family : {addressFamily} platform : {RuntimeInformation.OSDescription} not supported");
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowInvalidOperationException_FailedToCreateChildEventLoop(Exception ex)
-        {
-            throw GetInvalidOperationException();
-            InvalidOperationException GetInvalidOperationException()
-            {
-                return new InvalidOperationException("failed to create a child event loop.", ex);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowInvalidOperationException_CreateChild(Exception ex)
-        {
-            throw GetInvalidOperationException();
-            InvalidOperationException GetInvalidOperationException()
-            {
-                return new InvalidOperationException($"Failed to create a child {nameof(WorkerEventLoop)}.", ex.Unwrap());
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowInvalidOperationException_HandleNotInit()
-        {
-            throw GetInvalidOperationException();
-
-            static InvalidOperationException GetInvalidOperationException()
-            {
-                return new InvalidOperationException("tcpListener handle not intialized");
-            }
-        }
-
-        #endregion
-
-        #region -- SocketException --
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowSocketException(int errorCode)
-        {
-            throw GetSocketException();
-            SocketException GetSocketException()
-            {
-                return new SocketException(errorCode);
-            }
-        }
-
-        #endregion
-
-        #region -- ChannelException --
-
-        internal static ChannelException GetChannelException(OperationException ex)
-        {
-            return new ChannelException(ex);
-        }
-
-        internal static ChannelException GetChannelException_FailedToWrite(OperationException error)
-        {
-            return new ChannelException("Failed to write", error);
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowChannelException(Exception exc)
-        {
-            throw GetChannelException();
-            ChannelException GetChannelException()
-            {
-                return new ChannelException(exc);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowChannelException(ChannelOption option)
-        {
-            throw GetChannelException();
-            ChannelException GetChannelException()
-            {
-                return new ChannelException($"Invalid channel option {option}");
-            }
-        }
-
-        #endregion
-
-        #region -- TimeoutException --
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowTimeoutException(string pipeName)
+        internal static void ThrowInvalidOperationException_Udp_data_handler_has_already_been_registered()
         {
             throw GetException();
-            TimeoutException GetException()
+            static InvalidOperationException GetException()
             {
-                return new TimeoutException($"Connect to dispatcher pipe {pipeName} timed out.");
+                return new InvalidOperationException(
+                    $"{nameof(Udp)} data handler has already been registered");
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void ThrowInvalidOperationException_uv_handle_type_is_not_readable(uv_handle_type handleType, IntPtr internalHandle, TtyType ttyType)
+        {
+            throw GetException();
+            InvalidOperationException GetException()
+            {
+                return new InvalidOperationException(
+                    $"{handleType} {internalHandle} mode {ttyType} is not readable");
             }
         }
 
@@ -383,32 +283,48 @@ namespace DotNetty.Transport.Libuv
         #region -- NotSupportedException --
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static NotSupportedException GetNotSupportedException(IPEndPoint endPoint)
+        internal static NotSupportedException GetNotSupportedException_Poll_argument_must_be_either_IntPtr_or_int()
         {
-            return new NotSupportedException($"End point {endPoint} is not supported, expecting InterNetwork/InterNetworkV6.");
+            return new NotSupportedException("Poll argument must be either IntPtr or int");
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static NotSupportedException GetNotSupportedException_expecting_InterNetworkkV6OrV4(IPEndPoint endPoint)
+        {
+            return new NotSupportedException(
+                $"End point {endPoint} is not supported, expecting InterNetwork/InterNetworkV6.");
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static NotSupportedException GetNotSupportedException_Handle_type_to_initialize_not_supported(uv_handle_type handleType)
+        {
+            return new NotSupportedException($"Handle type to initialize {handleType} not supported");
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static NotSupportedException GetNotSupportedException_Handle_type_to_start_not_supported(uv_handle_type handleType)
+        {
+            return new NotSupportedException($"Handle type to start {handleType} not supported");
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static NotSupportedException GetNotSupportedException_Handle_type_to_stop_not_supported(uv_handle_type handleType)
+        {
+            return new NotSupportedException($"Handle type to stop {handleType} not supported");
         }
 
         #endregion
 
-        #region -- ConnectTimeoutException --
+        #region -- PlatformNotSupportedException --
 
-        internal static ConnectTimeoutException GetConnectTimeoutException(OperationException error)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void ThrowPlatformNotSupportedException_handle_type_send_buffer_size_setting_not_supported_on_Windows(uv_handle_type handleType)
         {
-            return new ConnectTimeoutException(error.ToString());
-        }
-
-        #endregion
-
-        #region -- ClosedChannelException --
-
-        internal static ClosedChannelException GetClosedChannelException()
-        {
-            return new ClosedChannelException();
-        }
-
-        internal static ClosedChannelException GetClosedChannelException_FailedToWrite(Exception ex)
-        {
-            return new ClosedChannelException("Failed to write", ex);
+            throw GetException();
+            PlatformNotSupportedException GetException()
+            {
+                return new PlatformNotSupportedException($"{handleType} send buffer size setting not supported on Windows");
+            }
         }
 
         #endregion

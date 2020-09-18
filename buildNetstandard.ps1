@@ -31,7 +31,7 @@ Param(
 
 $FakeVersion = "4.63.0"
 $DotNetChannel = "LTS";
-$DotNetVersion = "3.1.402";
+$DotNetVersion = "3.1.404";
 $DotNetInstallerUri = "https://dot.net/v1/dotnet-install.ps1";
 $NugetVersion = "5.7.0";
 $NugetUrl = "https://dist.nuget.org/win-x86-commandline/v$NugetVersion/nuget.exe"
