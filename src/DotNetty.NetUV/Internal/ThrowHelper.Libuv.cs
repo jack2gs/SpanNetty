@@ -97,6 +97,16 @@ namespace DotNetty.NetUV
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void ThrowInvalidOperationException_CreateChild(Exception ex)
+        {
+            throw GetInvalidOperationException();
+            InvalidOperationException GetInvalidOperationException()
+            {
+                return new InvalidOperationException($"Failed to create a child {nameof(WorkerEventLoop)}.", ex.Unwrap());
+            }
+        }
+
         #region -- SocketException --
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -106,6 +116,20 @@ namespace DotNetty.NetUV
             SocketException GetSocketException()
             {
                 return new SocketException(errorCode);
+            }
+        }
+
+        #endregion
+
+        #region -- TimeoutException --
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void ThrowTimeoutException(string pipeName)
+        {
+            throw GetException();
+            TimeoutException GetException()
+            {
+                return new TimeoutException($"Connect to dispatcher pipe {pipeName} timed out.");
             }
         }
 
