@@ -12,11 +12,10 @@
  * Licensed under the MIT license. See LICENSE file in the project root for full license information.
  */
 
-namespace DotNetty.NetUV.Channels
+namespace DotNetty.NetUV.Handles
 {
     using System;
     using DotNetty.Buffers;
-    using DotNetty.NetUV.Handles;
 
     internal sealed class StreamConsumer<T> : IStreamConsumer<T>
         where T : IInternalStreamHandle

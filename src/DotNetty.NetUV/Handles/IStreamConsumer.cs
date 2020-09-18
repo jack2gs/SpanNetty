@@ -12,10 +12,8 @@
  * Licensed under the MIT license. See LICENSE file in the project root for full license information.
  */
 
-namespace DotNetty.NetUV.Channels
+namespace DotNetty.NetUV.Handles
 {
-    using DotNetty.NetUV.Handles;
-
     internal interface IStreamConsumer<in T> 
         where T : IInternalStreamHandle
     {

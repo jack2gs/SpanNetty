@@ -17,7 +17,6 @@ namespace DotNetty.NetUV.Handles
     using System;
     using System.Diagnostics;
     using DotNetty.Buffers;
-    using DotNetty.NetUV.Channels;
     using DotNetty.NetUV.Native;
     using DotNetty.NetUV.Requests;
 

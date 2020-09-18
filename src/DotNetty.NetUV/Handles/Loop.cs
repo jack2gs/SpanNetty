@@ -15,6 +15,7 @@
 namespace DotNetty.NetUV.Handles
 {
     using System;
+    using System.Runtime.CompilerServices;
     using DotNetty.Common;
     using DotNetty.NetUV.Native;
     using DotNetty.NetUV.Requests;
@@ -31,6 +32,12 @@ namespace DotNetty.NetUV.Handles
         public Loop()
         {
             _handle = new LoopContext();
+        }
+
+        internal IntPtr InternalHandle
+        {
+            [MethodImpl(InlineMethod.AggressiveOptimization)]
+            get => _handle.Handle;
         }
 
         public bool IsAlive => _handle.IsAlive;

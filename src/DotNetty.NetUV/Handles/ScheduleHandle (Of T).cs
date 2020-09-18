@@ -91,16 +91,19 @@ namespace DotNetty.NetUV.Handles
         [MethodImpl(InlineMethod.AggressiveOptimization)]
         internal void Validate() => _handle.Validate();
 
+        unsafe IntPtr IInternalScheduleHandle.LoopHandle()
+        {
+            Validate();
+            return ((uv_handle_t*)InternalHandle)->loop;
+        }
+
         public unsafe bool TryGetLoop(out Loop loop)
         {
             loop = null;
             try
             {
                 IntPtr nativeHandle = InternalHandle;
-                if (nativeHandle == IntPtr.Zero)
-                {
-                    return false;
-                }
+                if (nativeHandle == IntPtr.Zero) { return false; }
 
                 IntPtr loopHandle = ((uv_handle_t*)nativeHandle)->loop;
                 if (loopHandle != IntPtr.Zero)

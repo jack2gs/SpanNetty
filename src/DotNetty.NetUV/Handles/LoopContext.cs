@@ -44,9 +44,7 @@ namespace DotNetty.NetUV.Handles
             if (Log.InfoEnabled) { Log.Loop_allocated(handle); }
         }
 
-        public bool IsAlive =>
-            IsValid
-            && NativeMethods.IsLoopAlive(Handle);
+        public bool IsAlive => /*IsValid && */NativeMethods.IsLoopAlive(Handle);
 
         public long Now
         {
@@ -66,10 +64,14 @@ namespace DotNetty.NetUV.Handles
             }
         }
 
-        public int ActiveHandleCount() =>
-            IsValid
-                ? (int)((uv_loop_t*)Handle)->active_handles
-                : 0;
+        public int ActiveHandleCount()
+        {
+            if (IsValid)
+            {
+                return (int)((uv_loop_t*)Handle)->active_handles;
+            }
+            return 0;
+        }
 
         public void UpdateTime()
         {
@@ -98,10 +100,7 @@ namespace DotNetty.NetUV.Handles
         protected override void CloseHandle()
         {
             IntPtr handle = Handle;
-            if (handle == IntPtr.Zero)
-            {
-                return;
-            }
+            if (handle == IntPtr.Zero) { return; }
 
             // Get gc handle before close loop
             IntPtr pHandle = ((uv_loop_t*)handle)->data;
@@ -127,10 +126,7 @@ namespace DotNetty.NetUV.Handles
 #if DEBUG
                 if (Log.DebugEnabled) { Log.Debug($"Loop {handle} close result = {result}, count = {count}."); }
 #endif
-                if (0u >= (uint)result)
-                {
-                    break;
-                }
+                if (0u >= (uint)result) { break; }
 #if DEBUG
                 else
                 {

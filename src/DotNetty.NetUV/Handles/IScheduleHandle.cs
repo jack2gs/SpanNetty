@@ -44,6 +44,8 @@ namespace DotNetty.NetUV.Handles
 
         IntPtr InternalHandle { get; }
 
+        IntPtr LoopHandle();
+
         void Validate();
 
         void OnHandleClosed();

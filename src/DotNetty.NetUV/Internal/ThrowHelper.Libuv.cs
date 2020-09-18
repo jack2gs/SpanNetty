@@ -23,16 +23,39 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using DotNetty.NetUV.Handles;
 using DotNetty.NetUV.Native;
 using DotNetty.NetUV.Channels;
+using DotNetty.Common.Utilities;
 
 namespace DotNetty.NetUV
 {
     internal partial class ThrowHelper
     {
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static Task FromArgumentException_RegChannel()
+        {
+            return TaskUtil.FromException(GetArgumentException());
+
+            static ArgumentException GetArgumentException()
+            {
+                return new ArgumentException($"channel must be of {typeof(INativeChannel)}");
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static Task FromInvalidOperationException(IntPtr loopHandle)
+        {
+            return TaskUtil.FromException(GetInvalidOperationException());
+            InvalidOperationException GetInvalidOperationException()
+            {
+                return new InvalidOperationException($"Loop {loopHandle} does not exist");
+            }
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void ThrowInvalidOperationException_ExecutionState(int executionState)
         {

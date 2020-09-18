@@ -59,11 +59,9 @@ namespace DotNetty.NetUV.Handles
             if (Log.InfoEnabled) { Log.HandleAllocated(handleType, handle); }
         }
 
-        internal bool IsActive => IsValid
-            && NativeMethods.IsHandleActive(Handle);
+        internal bool IsActive => /*IsValid && */NativeMethods.IsHandleActive(Handle);
 
-        internal bool IsClosing => IsValid
-            && NativeMethods.IsHandleClosing(Handle);
+        internal bool IsClosing => /*IsValid && */NativeMethods.IsHandleClosing(Handle);
 
         internal void AddReference()
         {
